@@ -22,6 +22,8 @@ class AccessPolicy(permissions.BasePermission):
         return self.statements
 
     def get_user_group_values(self, user) -> List[str]:
+        if user.oidc_user:
+            return list(user.oidc_user.userinfo.get('groups').split(' '))
         return list(user.groups.values_list("name", flat=True))
 
     @classmethod
@@ -76,6 +78,10 @@ class AccessPolicy(permissions.BasePermission):
         self, request, statements: List[dict]
     ) -> List[dict]:
         user = request.user
+        if user.oidc_user:
+            user_id = user.oidc_user.sub
+        else:
+            user_id = user.id
         user_roles = self.get_user_group_values(user)
         matched = []
 
@@ -89,7 +95,7 @@ class AccessPolicy(permissions.BasePermission):
                 found = not user.is_anonymous
             elif "anonymous" in principals:
                 found = user.is_anonymous
-            elif self.id_prefix + str(user.id) in principals:
+            elif self.id_prefix + str(user_id) in principals:
                 found = True
             else:
                 for user_role in user_roles:
