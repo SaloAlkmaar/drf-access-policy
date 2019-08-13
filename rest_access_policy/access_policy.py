@@ -22,7 +22,7 @@ class AccessPolicy(permissions.BasePermission):
         return self.statements
 
     def get_user_group_values(self, user) -> List[str]:
-        if user.oidc_user:
+        if hasattr(user, 'oidc_user') and hasattr(user.oidc_user, 'userinfo'):
             return list(user.oidc_user.userinfo.get('groups').split(' '))
         return list(user.groups.values_list("name", flat=True))
 
