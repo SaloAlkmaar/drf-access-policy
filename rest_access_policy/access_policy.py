@@ -78,7 +78,7 @@ class AccessPolicy(permissions.BasePermission):
         self, request, statements: List[dict]
     ) -> List[dict]:
         user = request.user
-        if user.oidc_user:
+        if hasattr(user, 'oidc_user') and hasattr(user.oidc_user, 'sub'):
             user_id = user.oidc_user.sub
         else:
             user_id = user.id
